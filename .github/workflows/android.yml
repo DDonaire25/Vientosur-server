@@ -1,28 +1,41 @@
-name: Android CI
+
+name: Build Vientosur Android APK
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Descargar el código
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Configurar Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
-          cache: gradle
+          java-version: "17"
 
-      - name: Grant execute permission for Gradle wrapper
-        run: chmod +x ./gradlew
+      - name: Instalar Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Instalar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Compilar Vientosur
+        working-directory: VientosurAndroid
+        run: gradle assembleDebug
+
+      - name: Publicar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vientosur-debug-apk
+          path: VientosurAndroid/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
